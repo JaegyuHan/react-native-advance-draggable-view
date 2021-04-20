@@ -50,6 +50,7 @@ export default class component extends Component {
   }
 
   isAValidMovement = (distanceX, distanceY) => {
+    // console.log(`distanceX : ${distanceX} , distanceY : ${distanceY}`)
     const moveTravelledFarEnough = Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 2;
     return moveTravelledFarEnough;
   }
@@ -83,7 +84,8 @@ export default class component extends Component {
       friction: 0,
       duration: 500,
       // easing:Easing.elastic,
-      velocity: velocityY
+      velocity: velocityY,
+      useNativeDriver: false,
     }).start();
 
     // position.addListener((position) => { console.log('position by', position, endPosition); });
@@ -105,14 +107,17 @@ export default class component extends Component {
       this.props.onInitialPositionReached && this.props.onInitialPositionReached();
     }
   }
-
-  componentWillMount() {
+  
+  UNSAFE_componentWillMount() {
+    console.log('UNSAFE_componentWillMount')
     this._panGesture = PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // console.warn('in onMoveShouldSetPanResponder')
+        console.warn('in onMoveShouldSetPanResponder')
         return this.isAValidMovement(gestureState.dx, gestureState.dy) && this.state.touched == 'TRUE'
       },
       onPanResponderMove: (evt, gestureState) => {
+        // console.log(evt)
+        // console.log(gestureState)
         // console.warn('in onPanResponderMove')
         this.setState({
           isDrawerSwiped: true,
@@ -120,12 +125,44 @@ export default class component extends Component {
         this.moveDrawerView(gestureState);
       },
       onPanResponderRelease: (evt, gestureState) => {
-        // console.warn('in onPanResponderRelease')
+        console.warn('in onPanResponderRelease')
         this.moveFinished(gestureState);
       },
+      // onPanResponderEnd: (evt, gestureState) => {
+      //   console.log('gkgkgk')
+      // },
+      // onMoveShouldSetPanResponderCapture: () => {
+      //   console.log('onMoveShouldSetPanResponderCapture')
+      // },
+      // onPanResponderGrant: () => {
+      //   console.log('onPanResponderGrant')
+      // },
+      // onPanResponderReject: () => {
+      //   console.log('onPanResponderReject')
+      // },
+      // onPanResponderStart: () => {
+      //   console.log('onPanResponderStart')
+      // },
+      onPanResponderTerminate: (evt, gestureState) => {
+        console.log('onPanResponderTerminate')
+        this.moveFinished(gestureState);
+      },
+      onPanResponderTerminationRequest: () => true,
+      // onShouldBlockNativeResponder: () => {
+      //   console.log('onShouldBlockNativeResponder')
+      // },
+      // onStartShouldSetPanResponder: () => {
+      //   console.log('onStartShouldSetPanResponder')
+      // },
+      // onStartShouldSetPanResponderCapture: () => {
+      //   console.log('onStartShouldSetPanResponderCapture')
+      // },
     });
   }
 
+  // onStartShouldSetPanResponderCapture
+  // onPanResponderGrant
+  // onShouldBlockNativeResponder
 
   moveDrawerView(gestureState) {
     // console.log('GESTURE', gestureState);
@@ -133,7 +170,7 @@ export default class component extends Component {
     var currentValue = Math.abs(gestureState.moveY / SCREEN_HEIGHT);
     var isGoingToUp = (gestureState.vy < 0);
     //Here, I'm subtracting %5 of screen size from edge drawer position to be closer as possible to finger location when dragging the drawer view
-    var position = gestureState.moveY - SCREEN_HEIGHT * 0.05;
+    var position = gestureState.moveY - SCREEN_HEIGHT * 0.001;
     //Send to callback function the current drawer position when drag down the drawer view component
     //   if(!isGoingToUp) this.props.onDragDown(1-currentValue);
     this.onUpdatePosition(position);
@@ -185,7 +222,7 @@ export default class component extends Component {
           {drawerView}
         </Animated.View>
 
-      </View >
+      </View>
     );
   }
 };
